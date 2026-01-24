@@ -3,6 +3,47 @@
   "$id": "https://example.com/schemas/agentic-checkout/bundle.schema.json",
   "title": "Agentic Checkout \u2014 Schema Bundle",
   "$defs": {
+    "VariantOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": "string" }
+      },
+      "required": ["name", "value"]
+    },
+    "WeightInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string", "enum": ["g", "kg", "oz", "lb"] }
+      },
+      "required": ["value", "unit"]
+    },
+    "DimensionsInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "length": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "unit": { "type": "string", "enum": ["cm", "in"] }
+      },
+      "required": ["length", "width", "height", "unit"]
+    },
+    "DiscountDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["percentage", "fixed", "bogo", "volume"] },
+        "amount": { "type": "integer" },
+        "description": { "type": "string" },
+        "source": { "type": "string", "enum": ["coupon", "automatic", "loyalty"] }
+      },
+      "required": ["type", "amount"]
+    },
     "Address": {
       "type": "object",
       "additionalProperties": false,
@@ -139,6 +180,40 @@
         }
       }
     },
+    "CompanyInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "tax_id": { "type": "string" },
+        "department": { "type": "string" },
+        "cost_center": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "LoyaltyInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tier": { "type": "string" },
+        "points_balance": { "type": "integer" },
+        "member_since": { "type": "string", "format": "date-time" }
+      }
+    },
+    "TaxExemption": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "certificate_id": { "type": "string" },
+        "certificate_type": { "type": "string", "enum": ["resale", "exempt_organization", "government"] },
+        "exempt_regions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "expires_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["certificate_id", "certificate_type"]
+    },
     "Buyer": {
       "type": "object",
       "additionalProperties": false,
@@ -149,15 +224,24 @@
         "last_name": {
           "type": "string"
         },
+        "full_name": {
+          "type": "string"
+        },
         "email": {
           "type": "string",
           "format": "email"
         },
         "phone_number": {
           "type": "string"
-        }
+        },
+        "customer_id": { "type": "string" },
+        "account_type": { "type": "string", "enum": ["guest", "registered", "business"] },
+        "authentication_status": { "type": "string", "enum": ["authenticated", "guest", "requires_signin"] },
+        "company": { "$ref": "#/$defs/CompanyInfo" },
+        "loyalty": { "$ref": "#/$defs/LoyaltyInfo" },
+        "tax_exemption": { "$ref": "#/$defs/TaxExemption" }
       },
-      "required": ["first_name", "last_name", "email"]
+      "required": ["email"]
     },
     "Item": {
       "type": "object",
@@ -166,12 +250,14 @@
         "id": {
           "type": "string"
         },
-        "quantity": {
-          "type": "integer",
-          "minimum": 1
+        "name": {
+          "type": "string"
+        },
+        "unit_amount": {
+          "type": "integer"
         }
       },
-      "required": ["id", "quantity"]
+      "required": ["id"]
     },
     "Disclosure": {
       "type": "object",
@@ -214,6 +300,24 @@
       },
       "required": ["name"]
     },
+    "PaymentMethod": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["card"]
+        },
+        "supported_card_networks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["amex", "discover", "mastercard", "visa"]
+          }
+        }
+      },
+      "required": ["type"]
+    },
     "PaymentProvider": {
       "type": "object",
       "additionalProperties": false,
@@ -225,8 +329,7 @@
         "supported_payment_methods": {
           "type": "array",
           "items": {
-            "type": "string",
-            "enum": ["card"]
+            "$ref": "#/$defs/PaymentMethod"
           }
         }
       },
@@ -242,20 +345,9 @@
         "item": {
           "$ref": "#/$defs/Item"
         },
-        "base_amount": {
-          "type": "integer"
-        },
-        "discount": {
-          "type": "integer"
-        },
-        "subtotal": {
-          "type": "integer"
-        },
-        "tax": {
-          "type": "integer"
-        },
-        "total": {
-          "type": "integer"
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
         },
         "name": {
           "type": "string"
@@ -288,17 +380,57 @@
         },
         "marketplace_seller_details": {
           "$ref": "#/$defs/MarketplaceSellerDetails"
+        },
+        "product_id": { "type": "string" },
+        "sku": { "type": "string" },
+        "variant_id": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "weight": { "$ref": "#/$defs/WeightInfo" },
+        "dimensions": { "$ref": "#/$defs/DimensionsInfo" },
+        "availability_status": {
+          "type": "string",
+          "enum": ["in_stock", "low_stock", "out_of_stock", "backorder", "pre_order"]
+        },
+        "available_quantity": { "type": "integer", "minimum": 0 },
+        "max_quantity_per_order": { "type": "integer", "minimum": 1 },
+        "fulfillable_on": { "type": "string", "format": "date-time" },
+        "variant_options": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/VariantOption" }
+        },
+        "discount_details": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/DiscountDetail" }
+        },
+        "tax_exempt": { "type": "boolean" },
+        "tax_exemption_reason": { "type": "string" },
+        "parent_id": { "type": "string", "description": "Reference to parent line item for bundled products" },
+        "totals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Total" },
+          "description": "Line-item level totals breakdown including base_amount, discount, subtotal, tax, and total"
         }
       },
       "required": [
         "id",
         "item",
-        "base_amount",
-        "discount",
-        "subtotal",
-        "tax",
-        "total"
+        "quantity",
+        "totals"
       ]
+    },
+    "TaxBreakdownItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "jurisdiction": { "type": "string" },
+        "rate": { "type": "number" },
+        "amount": { "type": "integer" }
+      },
+      "required": ["jurisdiction", "rate", "amount"]
     },
     "Total": {
       "type": "object",
@@ -314,6 +446,9 @@
             "fulfillment",
             "tax",
             "fee",
+            "gift_wrap",
+            "tip",
+            "store_credit",
             "total"
           ]
         },
@@ -323,11 +458,74 @@
         "amount": {
           "type": "integer"
         },
+        "presentment_amount": { "type": "integer" },
         "description": {
           "type": "string"
+        },
+        "breakdown": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TaxBreakdownItem" }
         }
       },
       "required": ["type", "display_text", "amount"]
+    },
+    "FulfillmentOptionPickup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "pickup" },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "address": { "$ref": "#/$defs/Address" },
+            "phone": { "type": "string" },
+            "instructions": { "type": "string" }
+          },
+          "required": ["name", "address"]
+        },
+        "pickup_type": { "type": "string", "enum": ["in_store", "curbside", "locker"] },
+        "ready_by": { "type": "string", "format": "date-time" },
+        "pickup_by": { "type": "string", "format": "date-time" },
+        "totals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Total" }
+        }
+      },
+      "required": ["type", "id", "title", "location", "totals"]
+    },
+    "FulfillmentOptionLocalDelivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "local_delivery" },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "delivery_window": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "string", "format": "date-time" },
+            "end": { "type": "string", "format": "date-time" }
+          },
+          "required": ["start", "end"]
+        },
+        "service_area": {
+          "type": "object",
+          "properties": {
+            "radius_miles": { "type": "number" },
+            "center_postal_code": { "type": "string" }
+          }
+        },
+        "totals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Total" }
+        }
+      },
+      "required": ["type", "id", "title", "totals"]
     },
     "FulfillmentOptionShipping": {
       "type": "object",
@@ -343,7 +541,7 @@
         "title": {
           "type": "string"
         },
-        "subtitle": {
+        "description": {
           "type": "string"
         },
         "carrier": {
@@ -357,17 +555,12 @@
           "type": "string",
           "format": "date-time"
         },
-        "subtotal": {
-          "type": "integer"
-        },
-        "tax": {
-          "type": "integer"
-        },
-        "total": {
-          "type": "integer"
+        "totals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Total" }
         }
       },
-      "required": ["type", "id", "title", "total"]
+      "required": ["type", "id", "title", "totals"]
     },
     "FulfillmentOptionDigital": {
       "type": "object",
@@ -383,92 +576,115 @@
         "title": {
           "type": "string"
         },
-        "subtitle": {
+        "description": {
           "type": "string"
         },
-        "subtotal": {
-          "type": "integer"
-        },
-        "tax": {
-          "type": "integer"
-        },
-        "total": {
-          "type": "integer"
-        }
-      },
-      "required": ["type", "id", "title", "total"]
-    },
-    "SelectedShippingFulfillmentOption": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "option_id": {
-          "type": "string"
-        },
-        "item_ids": {
+        "totals": {
           "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "items": { "$ref": "#/$defs/Total" }
         }
       },
-      "required": ["option_id", "item_ids"]
+      "required": ["type", "id", "title", "totals"]
     },
-    "SelectedDigitalFulfillmentOption": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "option_id": {
-          "type": "string"
-        },
-        "item_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": ["option_id", "item_ids"]
-    },
-    "SelectedFulfillmentOption": {
+    "SelectedFulfillmentOptions": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["shipping", "digital"]
+          "enum": ["shipping", "digital", "pickup", "local_delivery"]
         },
-        "shipping": {
-          "$ref": "#/$defs/SelectedShippingFulfillmentOption"
+        "option_id": {
+          "type": "string"
         },
-        "digital": {
-          "$ref": "#/$defs/SelectedDigitalFulfillmentOption"
+        "item_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
-      "required": ["type"],
-      "oneOf": [
-        {
-          "properties": {
-            "type": { "const": "shipping" }
-          },
-          "required": ["shipping"]
+      "required": ["type", "option_id", "item_ids"]
+    },
+    "AvailablePromotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "description": { "type": "string" },
+        "requirements": { "type": "string" }
+      },
+      "required": ["code", "description"]
+    },
+    "GiftWrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "style": { "type": "string", "enum": ["birthday", "holiday", "elegant"] },
+        "charge": { "type": "integer" }
+      },
+      "required": ["enabled"]
+    },
+    "SplitPayment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amount": { "type": "integer" }
+      },
+      "required": ["amount"]
+    },
+    "FulfillmentGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "item_ids": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        {
-          "properties": {
-            "type": { "const": "digital" }
-          },
-          "required": ["digital"]
-        }
-      ]
+        "destination_type": { "type": "string", "enum": ["shipping", "pickup", "local_delivery", "digital"] },
+        "fulfillment_details": { "$ref": "#/$defs/FulfillmentDetails" },
+        "location_id": { "type": "string" },
+        "instructions": { "type": "string" }
+      },
+      "required": ["id", "item_ids", "destination_type"]
+    },
+    "EstimatedDelivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "earliest": { "type": "string", "format": "date-time" },
+        "latest": { "type": "string", "format": "date-time" }
+      },
+      "required": ["earliest", "latest"]
+    },
+    "OrderConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmation_number": { "type": "string" },
+        "confirmation_email_sent": { "type": "boolean" },
+        "receipt_url": { "type": "string", "format": "uri" },
+        "invoice_number": { "type": "string" }
+      }
+    },
+    "SupportInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "hours": { "type": "string" },
+        "help_center_url": { "type": "string", "format": "uri" }
+      }
     },
     "MessageInfo": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "type": {
-          "type": "string",
-          "const": "info"
-        },
+        "type": { "type": "string", "const": "info" },
+        "severity": { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
         "param": {
           "type": "string",
           "description": "RFC 9535 JSONPath"
@@ -482,6 +698,30 @@
         }
       },
       "required": ["type", "content_type", "content"]
+    },
+    "MessageWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "warning" },
+        "code": {
+          "type": "string",
+          "enum": ["low_stock", "high_demand", "shipping_delay", "price_change", "expiring_promotion", "limited_availability"]
+        },
+        "severity": { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
+        "param": {
+          "type": "string",
+          "description": "RFC 9535 JSONPath"
+        },
+        "content_type": {
+          "type": "string",
+          "enum": ["plain", "markdown"]
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "code", "content_type", "content"]
     },
     "MessageError": {
       "type": "object",
@@ -499,9 +739,24 @@
             "out_of_stock",
             "payment_declined",
             "requires_sign_in",
-            "requires_3ds"
+            "requires_3ds",
+            "low_stock",
+            "quantity_exceeded",
+            "coupon_invalid",
+            "coupon_expired",
+            "minimum_not_met",
+            "maximum_exceeded",
+            "region_restricted",
+            "age_verification_required",
+            "approval_required",
+            "unsupported",
+            "not_found",
+            "conflict",
+            "rate_limited",
+            "expired"
           ]
         },
+        "severity": { "type": "string", "enum": ["info", "low", "medium", "high", "critical"] },
         "param": {
           "type": "string",
           "description": "RFC 9535 JSONPath"
@@ -522,8 +777,9 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["terms_of_use", "privacy_policy", "return_policy"]
+          "enum": ["terms_of_use", "privacy_policy", "return_policy", "shipping_policy", "contact_us", "about_us", "faq", "support"]
         },
+        "title": { "type": "string" },
         "url": {
           "type": "string",
           "format": "uri"
@@ -544,9 +800,61 @@
         },
         "billing_address": {
           "$ref": "#/$defs/Address"
+        },
+        "purchase_order_number": { "type": "string" },
+        "payment_terms": { "type": "string", "enum": ["immediate", "net_15", "net_30", "net_60", "net_90"] },
+        "due_date": { "type": "string", "format": "date-time" },
+        "approval_required": { "type": "boolean" }
+      },
+      "anyOf": [
+        { "required": ["token", "provider"] },
+        { "required": ["purchase_order_number"] }
+      ]
+    },
+    "ProtocolVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": { "type": "string", "example": "2026-01-22" },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of supported capabilities"
         }
       },
-      "required": ["token", "provider"]
+      "required": ["version"]
+    },
+    "PaymentResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string" },
+        "instruments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "handlers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "RiskSignals": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ip_address": { "type": "string" },
+        "user_agent": { "type": "string" },
+        "accept_language": { "type": "string" },
+        "session_id": { "type": "string" },
+        "device_fingerprint": { "type": "string" }
+      }
     },
     "Order": {
       "type": "object",
@@ -558,10 +866,15 @@
         "checkout_session_id": {
           "type": "string"
         },
+        "order_number": { "type": "string" },
         "permalink_url": {
           "type": "string",
           "format": "uri"
-        }
+        },
+        "status": { "type": "string", "enum": ["confirmed", "processing", "shipped", "delivered"] },
+        "estimated_delivery": { "$ref": "#/$defs/EstimatedDelivery" },
+        "confirmation": { "$ref": "#/$defs/OrderConfirmation" },
+        "support": { "$ref": "#/$defs/SupportInfo" }
       },
       "required": ["id", "checkout_session_id", "permalink_url"]
     },
@@ -579,6 +892,310 @@
       },
       "required": ["type", "amount"]
     },
+    "AuthenticationMetadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Seller-provided authentication metadata for 3DS flows.",
+      "required": [
+        "channel",
+        "acquirer_details",
+        "directory_server"
+      ],
+      "properties": {
+        "channel": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Details about the channel used for this 3DS Authentication.",
+          "required": [
+            "type",
+            "browser"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "browser"
+              ],
+              "description": "Use 'browser' to indicate the transaction originated from a browser."
+            },
+            "browser": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Browser details collected server- or client-side.",
+              "properties": {
+                "accept_header": {
+                  "type": "string",
+                  "description": "The HTTP Accept header from the cardholder\u2019s browser."
+                },
+                "ip_address": {
+                  "type": "string",
+                  "maxLength": 45,
+                  "description": "The IP address of the browser."
+                },
+                "javascript_enabled": {
+                  "type": "boolean",
+                  "description": "Whether the cardholder browser can execute JavaScript."
+                },
+                "language": {
+                  "type": "string",
+                  "maxLength": 35,
+                  "description": "An IETF BCP 47 language tag representing the browser language."
+                },
+                "user_agent": {
+                  "type": "string",
+                  "description": "The browser user agent string."
+                },
+                "color_depth": {
+                  "type": "integer",
+                  "description": "The screen color depth. Required if javascript_enabled is true."
+                },
+                "java_enabled": {
+                  "type": "boolean",
+                  "description": "Browser Java support. Required if javascript_enabled is true."
+                },
+                "screen_height": {
+                  "type": "integer",
+                  "description": "Screen height in pixels. Required if javascript_enabled is true."
+                },
+                "screen_width": {
+                  "type": "integer",
+                  "description": "Screen width in pixels. Required if javascript_enabled is true."
+                },
+                "timezone_offset": {
+                  "type": "integer",
+                  "description": "Time difference in minutes between UTC and the browser local time. Required if javascript_enabled is true."
+                }
+              },
+              "required": [
+                "accept_header",
+                "ip_address",
+                "javascript_enabled",
+                "language",
+                "user_agent"
+              ]
+            }
+          }
+        },
+        "acquirer_details": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Details about the acquirer used for this 3DS Authentication. This object MUST be present.",
+          "properties": {
+            "acquirer_bin": {
+              "type": "string",
+              "maxLength": 11,
+              "description": "The Acquirer BIN (directory-server specific)."
+            },
+            "acquirer_country": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "Two-letter ISO 3166-1 alpha-2 country code."
+            },
+            "acquirer_merchant_id": {
+              "type": "string",
+              "maxLength": 35,
+              "description": "The Merchant ID assigned by the acquirer."
+            },
+            "merchant_name": {
+              "type": "string",
+              "maxLength": 40,
+              "description": "Merchant name assigned by the acquirer."
+            },
+            "requestor_id": {
+              "type": "string",
+              "maxLength": 35,
+              "description": "Requestor ID (if required by the directory server)."
+            }
+          },
+          "required": [
+            "acquirer_bin",
+            "acquirer_country",
+            "acquirer_merchant_id",
+            "merchant_name"
+          ]
+        },
+        "directory_server": {
+          "type": "string",
+          "enum": [
+            "american_express",
+            "mastercard",
+            "visa"
+          ],
+          "description": "The 3DS directory server used for this Authentication."
+        },
+        "flow_preference": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Contains additional details on the seller's preference for the 3DS authentication flow. Sellers MAY request a preference, but issuers ultimately decide the actual flow.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "challenge",
+                "frictionless"
+              ],
+              "description": "Type of flow requested for this 3DS Authentication. 'challenge' requests a challenge flow; 'frictionless' requests a frictionless flow."
+            },
+            "challenge": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Details about the requested challenge flow.",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "mandated",
+                    "preferred"
+                  ],
+                  "description": "Subtype of challenge preference."
+                }
+              }
+            },
+            "frictionless": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Details about the requested frictionless flow.",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "low_risk"
+                  ],
+                  "description": "Subtype of frictionless preference."
+                }
+              }
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "channel": {
+                "properties": {
+                  "browser": {
+                    "properties": {
+                      "javascript_enabled": {
+                        "const": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "channel": {
+                "properties": {
+                  "browser": {
+                    "required": [
+                      "color_depth",
+                      "java_enabled",
+                      "screen_height",
+                      "screen_width",
+                      "timezone_offset"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AuthenticationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Agent-provided authentication results returned to the seller for card-based 3D Secure.",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "description": "The outcome of this 3DS Authentication.",
+          "enum": [
+            "abandoned",
+            "attempt_acknowledged",
+            "authenticated",
+            "canceled",
+            "denied",
+            "informational",
+            "internal_error",
+            "not_supported",
+            "processing_error",
+            "rejected"
+          ],
+          "example": "authenticated"
+        },
+        "outcome_details": {
+          "type": "object",
+          "description": "Detailed authentication data. This field is required when the outcome is 'authenticated', 'informational', or 'attempt_acknowledged'.",
+          "additionalProperties": false,
+          "properties": {
+            "three_ds_cryptogram": {
+              "type": "string",
+              "description": "The 3DS cryptogram (authentication value / AAV/CAVV/AEVV). This value is 20 bytes, base64-encoded into a 28-character string.",
+              "example": "AbCdEfGhIjKlMnOpQrStUvWxY0="
+            },
+            "electronic_commerce_indicator": {
+              "type": "string",
+              "description": "Electronic Commerce Indicator (ECI) returned by the 3D Secure provider. Indicates the degree/type of authentication performed.",
+              "enum": [
+                "01",
+                "02",
+                "05",
+                "06",
+                "07"
+              ],
+              "example": "05"
+            },
+            "transaction_id": {
+              "type": "string",
+              "description": "Transaction identifier returned by the 3DS system:\n- For 3DS1: the XID\n- For 3DS2: the Directory Server Transaction ID (dsTransID)",
+              "example": "dsTransId_abc123"
+            },
+            "version": {
+              "type": "string",
+              "description": "The 3D Secure version used for this authentication (for example '1.0.2' or '2.2.0').",
+              "example": "2.2.0"
+            }
+          },
+          "required": [
+            "three_ds_cryptogram",
+            "electronic_commerce_indicator",
+            "transaction_id",
+            "version"
+          ]
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "authenticated",
+                  "informational",
+                  "attempt_acknowledged"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "outcome_details"
+            ]
+          }
+        }
+      ]
+    },
     "CheckoutSessionBase": {
       "type": "object",
       "additionalProperties": false,
@@ -586,25 +1203,38 @@
         "id": {
           "type": "string"
         },
+        "protocol": { "$ref": "#/$defs/ProtocolVersion" },
         "buyer": {
           "$ref": "#/$defs/Buyer"
         },
         "payment_provider": {
           "$ref": "#/$defs/PaymentProvider"
         },
+        "payment": { "$ref": "#/$defs/PaymentResponse" },
         "status": {
           "type": "string",
           "enum": [
+            "incomplete",
             "not_ready_for_payment",
+            "requires_escalation",
+            "authentication_required",
             "ready_for_payment",
+            "pending_approval",
+            "complete_in_progress",
             "completed",
             "canceled",
-            "in_progress"
+            "in_progress",
+            "expired"
           ]
         },
         "currency": {
           "type": "string"
         },
+        "presentment_currency": { "type": "string" },
+        "exchange_rate": { "type": "number" },
+        "exchange_rate_timestamp": { "type": "string", "format": "date-time" },
+        "locale": { "type": "string" },
+        "timezone": { "type": "string" },
         "line_items": {
           "type": "array",
           "items": {
@@ -623,6 +1253,12 @@
               },
               {
                 "$ref": "#/$defs/FulfillmentOptionDigital"
+              },
+              {
+                "$ref": "#/$defs/FulfillmentOptionPickup"
+              },
+              {
+                "$ref": "#/$defs/FulfillmentOptionLocalDelivery"
               }
             ]
           }
@@ -630,7 +1266,13 @@
         "selected_fulfillment_options": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/SelectedFulfillmentOption"
+            "$ref": "#/$defs/SelectedFulfillmentOptions"
+          }
+        },
+        "fulfillment_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FulfillmentGroup"
           }
         },
         "totals": {
@@ -647,6 +1289,9 @@
                 "$ref": "#/$defs/MessageInfo"
               },
               {
+                "$ref": "#/$defs/MessageWarning"
+              },
+              {
                 "$ref": "#/$defs/MessageError"
               }
             ]
@@ -657,7 +1302,24 @@
           "items": {
             "$ref": "#/$defs/Link"
           }
-        }
+        },
+        "authentication_metadata": {
+          "$ref": "#/$defs/AuthenticationMetadata"
+        },
+        "available_promotions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/AvailablePromotion" }
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "continue_url": { "type": "string", "format": "uri" },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "quote_id": { "type": "string" },
+        "quote_expires_at": { "type": "string", "format": "date-time" }
       },
       "required": [
         "id",
@@ -700,21 +1362,37 @@
         "buyer": {
           "$ref": "#/$defs/Buyer"
         },
-        "items": {
+        "line_items": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/Item"
           },
           "minItems": 1
         },
+        "currency": { "type": "string", "description": "ISO 4217 currency code" },
         "fulfillment_details": {
           "$ref": "#/$defs/FulfillmentDetails"
         },
+        "fulfillment_groups": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FulfillmentGroup" }
+        },
         "affiliate_attribution": {
           "$ref": "#/$defs/AffiliateAttribution"
+        },
+        "coupons": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "locale": { "type": "string" },
+        "timezone": { "type": "string" },
+        "quote_id": { "type": "string" },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
-      "required": ["items"]
+      "required": ["line_items", "currency"]
     },
     "CheckoutSessionUpdateRequest": {
       "type": "object",
@@ -723,7 +1401,7 @@
         "buyer": {
           "$ref": "#/$defs/Buyer"
         },
-        "items": {
+        "line_items": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/Item"
@@ -732,11 +1410,19 @@
         "fulfillment_details": {
           "$ref": "#/$defs/FulfillmentDetails"
         },
+        "fulfillment_groups": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FulfillmentGroup" }
+        },
         "selected_fulfillment_options": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/SelectedFulfillmentOption"
+            "$ref": "#/$defs/SelectedFulfillmentOptions"
           }
+        },
+        "coupons": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
@@ -750,9 +1436,13 @@
         "payment_data": {
           "$ref": "#/$defs/PaymentData"
         },
+        "authentication_result": {
+          "$ref": "#/$defs/AuthenticationResult"
+        },
         "affiliate_attribution": {
           "$ref": "#/$defs/AffiliateAttribution"
-        }
+        },
+        "risk_signals": { "$ref": "#/$defs/RiskSignals" }
       },
       "required": ["payment_data"]
     },

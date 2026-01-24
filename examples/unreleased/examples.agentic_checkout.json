@@ -1,8 +1,11 @@
 {
   "create_checkout_session_request": {
-    "items": [
+    "currency": "usd",
+    "line_items": [
       {
-        "id": "item_123",
+        "item": {
+          "id": "item_123"
+        },
         "quantity": 1
       }
     ],
@@ -22,9 +25,12 @@
     }
   },
   "create_checkout_session_request_with_first_touch_attribution": {
-    "items": [
+    "currency": "usd",
+    "line_items": [
       {
-        "id": "item_123",
+        "item": {
+          "id": "item_123"
+        },
         "quantity": 1
       }
     ],
@@ -37,12 +43,21 @@
   },
   "create_checkout_session_response": {
     "id": "checkout_session_123",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "payment_provider": {
       "provider": "stripe",
       "supported_payment_methods": [
         {
           "type": "card",
-          "supported_card_networks": ["amex", "discover", "mastercard", "visa"]
+          "supported_card_networks": [
+            "amex",
+            "discover",
+            "mastercard",
+            "visa"
+          ]
         }
       ]
     },
@@ -52,14 +67,9 @@
       {
         "id": "line_item_123",
         "item": {
-          "id": "item_123",
-          "quantity": 1
+          "id": "item_123"
         },
-        "base_amount": 300,
-        "discount": 0,
-        "subtotal": 300,
-        "tax": 30,
-        "total": 330,
+        "quantity": 1,
         "name": "Vintage Denim Jacket",
         "description": "Classic blue denim jacket with brass buttons and adjustable waist tabs",
         "images": [
@@ -83,6 +93,33 @@
             "content_type": "plain",
             "content": "This item is vintage and may show signs of previous wear."
           }
+        ],
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 300
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 300
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 30
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 330
+          }
         ]
       }
     ],
@@ -103,10 +140,8 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_123",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_123",
+        "item_ids": ["item_123"]
       }
     ],
     "totals": [
@@ -147,25 +182,25 @@
         "type": "shipping",
         "id": "fulfillment_option_123",
         "title": "Standard",
-        "subtitle": "Arrives in 4-5 days",
+        "description": "Arrives in 4-5 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-12T07:20:50.52Z",
         "latest_delivery_time": "2025-10-13T07:20:50.52Z",
-        "subtotal": 100,
-        "tax": 0,
-        "total": 100
+        "totals": [
+          { "type": "total", "display_text": "Shipping", "amount": 100 }
+        ]
       },
       {
         "type": "shipping",
         "id": "fulfillment_option_456",
         "title": "Express",
-        "subtitle": "Arrives in 1-2 days",
+        "description": "Arrives in 1-2 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-09T07:20:50.52Z",
         "latest_delivery_time": "2025-10-10T07:20:50.52Z",
-        "subtotal": 500,
-        "tax": 0,
-        "total": 500
+        "totals": [
+          { "type": "total", "display_text": "Express Shipping", "amount": 500 }
+        ]
       }
     ],
     "messages": [],
@@ -184,29 +219,53 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_456",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_456",
+        "item_ids": ["item_123"]
       }
     ]
   },
   "update_checkout_session_response": {
     "id": "checkout_session_123",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "status": "ready_for_payment",
     "currency": "usd",
     "line_items": [
       {
         "id": "line_item_123",
         "item": {
-          "id": "item_123",
-          "quantity": 1
+          "id": "item_123"
         },
-        "base_amount": 300,
-        "discount": 0,
-        "subtotal": 300,
-        "tax": 30,
-        "total": 330
+        "quantity": 1,
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 300
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 300
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 30
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 330
+          }
+        ]
       }
     ],
     "fulfillment_details": {
@@ -226,10 +285,8 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_456",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_456",
+        "item_ids": ["item_123"]
       }
     ],
     "totals": [
@@ -264,25 +321,25 @@
         "type": "shipping",
         "id": "fulfillment_option_123",
         "title": "Standard",
-        "subtitle": "Arrives in 4-5 days",
+        "description": "Arrives in 4-5 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-12T07:20:50.52Z",
         "latest_delivery_time": "2025-10-13T07:20:50.52Z",
-        "subtotal": 100,
-        "tax": 0,
-        "total": 100
+        "totals": [
+          { "type": "total", "display_text": "Shipping", "amount": 100 }
+        ]
       },
       {
         "type": "shipping",
         "id": "fulfillment_option_456",
         "title": "Express",
-        "subtitle": "Arrives in 1-2 days",
+        "description": "Arrives in 1-2 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-09T07:20:50.52Z",
         "latest_delivery_time": "2025-10-10T07:20:50.52Z",
-        "subtotal": 500,
-        "tax": 0,
-        "total": 500
+        "totals": [
+          { "type": "total", "display_text": "Express Shipping", "amount": 500 }
+        ]
       }
     ],
     "messages": [],
@@ -347,6 +404,10 @@
   },
   "complete_checkout_session_response": {
     "id": "checkout_session_123",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "buyer": {
       "first_name": "John",
       "last_name": "Smith",
@@ -359,14 +420,9 @@
       {
         "id": "line_item_123",
         "item": {
-          "id": "item_123",
-          "quantity": 1
+          "id": "item_123"
         },
-        "base_amount": 300,
-        "discount": 0,
-        "subtotal": 300,
-        "tax": 30,
-        "total": 330,
+        "quantity": 1,
         "name": "Vintage Denim Jacket",
         "description": "Classic blue denim jacket with brass buttons and adjustable waist tabs",
         "images": [
@@ -375,7 +431,34 @@
         "unit_amount": 300,
         "marketplace_seller_details": {
           "name": "VintageClothingCo"
-        }
+        },
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 300
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 300
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 30
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 330
+          }
+        ]
       }
     ],
     "fulfillment_details": {
@@ -395,10 +478,8 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_123",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_123",
+        "item_ids": ["item_123"]
       }
     ],
     "totals": [
@@ -433,25 +514,25 @@
         "type": "shipping",
         "id": "fulfillment_option_123",
         "title": "Standard",
-        "subtitle": "Arrives in 4-5 days",
+        "description": "Arrives in 4-5 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-12T07:20:50.52Z",
         "latest_delivery_time": "2025-10-13T07:20:50.52Z",
-        "subtotal": 100,
-        "tax": 0,
-        "total": 100
+        "totals": [
+          { "type": "total", "display_text": "Shipping", "amount": 100 }
+        ]
       },
       {
         "type": "shipping",
         "id": "fulfillment_option_456",
         "title": "Express",
-        "subtitle": "Arrives in 1-2 days",
+        "description": "Arrives in 1-2 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-09T07:20:50.52Z",
         "latest_delivery_time": "2025-10-10T07:20:50.52Z",
-        "subtotal": 500,
-        "tax": 0,
-        "total": 500
+        "totals": [
+          { "type": "total", "display_text": "Express Shipping", "amount": 500 }
+        ]
       }
     ],
     "messages": [],
@@ -473,20 +554,46 @@
   },
   "get_checkout_session_response": {
     "id": "checkout_session_123",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "status": "ready_for_payment",
     "currency": "usd",
     "line_items": [
       {
         "id": "line_item_123",
         "item": {
-          "id": "item_123",
-          "quantity": 1
+          "id": "item_123"
         },
-        "base_amount": 300,
-        "discount": 0,
-        "subtotal": 300,
-        "tax": 30,
-        "total": 330
+        "quantity": 1,
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 300
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 300
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 30
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 330
+          }
+        ]
       }
     ],
     "fulfillment_details": {
@@ -506,10 +613,8 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_123",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_123",
+        "item_ids": ["item_123"]
       }
     ],
     "totals": [
@@ -544,25 +649,25 @@
         "type": "shipping",
         "id": "fulfillment_option_123",
         "title": "Standard",
-        "subtitle": "Arrives in 4-5 days",
+        "description": "Arrives in 4-5 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-12T07:20:50.52Z",
         "latest_delivery_time": "2025-10-13T07:20:50.52Z",
-        "subtotal": 100,
-        "tax": 0,
-        "total": 100
+        "totals": [
+          { "type": "total", "display_text": "Shipping", "amount": 100 }
+        ]
       },
       {
         "type": "shipping",
         "id": "fulfillment_option_456",
         "title": "Express",
-        "subtitle": "Arrives in 1-2 days",
+        "description": "Arrives in 1-2 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-09T07:20:50.52Z",
         "latest_delivery_time": "2025-10-10T07:20:50.52Z",
-        "subtotal": 500,
-        "tax": 0,
-        "total": 500
+        "totals": [
+          { "type": "total", "display_text": "Express Shipping", "amount": 500 }
+        ]
       }
     ],
     "messages": [],
@@ -599,20 +704,46 @@
   },
   "cancel_checkout_session_response": {
     "id": "checkout_session_123",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "status": "canceled",
     "currency": "usd",
     "line_items": [
       {
         "id": "line_item_123",
         "item": {
-          "id": "item_123",
-          "quantity": 1
+          "id": "item_123"
         },
-        "base_amount": 300,
-        "discount": 0,
-        "subtotal": 300,
-        "tax": 30,
-        "total": 330
+        "quantity": 1,
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 300
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 300
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 30
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 330
+          }
+        ]
       }
     ],
     "fulfillment_details": {
@@ -632,10 +763,8 @@
     "selected_fulfillment_options": [
       {
         "type": "shipping",
-        "shipping": {
-          "option_id": "fulfillment_option_123",
-          "item_ids": ["item_123"]
-        }
+        "option_id": "fulfillment_option_123",
+        "item_ids": ["item_123"]
       }
     ],
     "totals": [
@@ -670,13 +799,13 @@
         "type": "shipping",
         "id": "fulfillment_option_123",
         "title": "Standard",
-        "subtitle": "Arrives in 4-5 days",
+        "description": "Arrives in 4-5 days",
         "carrier": "USPS",
         "earliest_delivery_time": "2025-10-12T07:20:50.52Z",
         "latest_delivery_time": "2025-10-13T07:20:50.52Z",
-        "subtotal": 100,
-        "tax": 0,
-        "total": 100
+        "totals": [
+          { "type": "total", "display_text": "Shipping", "amount": 100 }
+        ]
       }
     ],
     "messages": [
@@ -724,6 +853,10 @@
   },
   "checkout_session_authentication_required": {
     "id": "checkout_session_3ds_001",
+    "protocol": {
+      "version": "2026-01-22",
+      "capabilities": []
+    },
     "payment_provider": {
       "provider": "stripe",
       "supported_payment_methods": [
@@ -736,16 +869,38 @@
       {
         "id": "line_item_3ds_001",
         "item": {
-          "id": "item_3ds_001",
-          "quantity": 1
+          "id": "item_3ds_001"
         },
-        "base_amount": 5000,
-        "discount": 0,
-        "subtotal": 5000,
-        "tax": 375,
-        "total": 5375,
+        "quantity": 1,
         "name": "Premium Leather Boots",
-        "unit_amount": 5000
+        "unit_amount": 5000,
+        "totals": [
+          {
+            "type": "base_amount",
+            "display_text": "Base Amount",
+            "amount": 5000
+          },
+          {
+            "type": "discount",
+            "display_text": "Discount",
+            "amount": 0
+          },
+          {
+            "type": "subtotal",
+            "display_text": "Subtotal",
+            "amount": 5000
+          },
+          {
+            "type": "tax",
+            "display_text": "Tax",
+            "amount": 375
+          },
+          {
+            "type": "total",
+            "display_text": "Total",
+            "amount": 5375
+          }
+        ]
       }
     ],
     "fulfillment_address": {
@@ -790,13 +945,15 @@
         "type": "shipping",
         "id": "ful_overnight_01",
         "title": "Overnight",
-        "subtitle": "Next-business-day delivery",
+        "description": "Next-business-day delivery",
         "carrier": "UPS",
         "earliest_delivery_time": "2026-01-13T08:00:00Z",
         "latest_delivery_time": "2026-01-13T20:00:00Z",
-        "subtotal": 2500,
-        "tax": 0,
-        "total": 2500
+        "totals": [
+          { "type": "subtotal", "display_text": "Shipping Fee", "amount": 2500 },
+          { "type": "tax", "display_text": "Tax", "amount": 0 },
+          { "type": "total", "display_text": "Total", "amount": 2500 }
+        ]
       }
     ],
     "messages": [],
