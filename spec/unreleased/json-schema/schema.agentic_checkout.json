@@ -586,7 +586,7 @@
       },
       "required": ["type", "id", "title", "totals"]
     },
-    "SelectedFulfillmentOptions": {
+    "SelectedFulfillmentOption": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -605,16 +605,6 @@
         }
       },
       "required": ["type", "option_id", "item_ids"]
-    },
-    "AvailablePromotion": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "code": { "type": "string" },
-        "description": { "type": "string" },
-        "requirements": { "type": "string" }
-      },
-      "required": ["code", "description"]
     },
     "GiftWrap": {
       "type": "object",
@@ -1275,6 +1265,12 @@
             "$ref": "#/$defs/FulfillmentGroup"
           }
         },
+        "fulfillment_groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FulfillmentGroup"
+          }
+        },
         "totals": {
           "type": "array",
           "items": {
@@ -1305,10 +1301,6 @@
         },
         "authentication_metadata": {
           "$ref": "#/$defs/AuthenticationMetadata"
-        },
-        "available_promotions": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/AvailablePromotion" }
         },
         "created_at": { "type": "string", "format": "date-time" },
         "updated_at": { "type": "string", "format": "date-time" },
